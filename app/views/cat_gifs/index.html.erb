@@ -60,9 +60,19 @@
         <div class="col-sm-4">
           <%= link_to "Add a Cat", new_cat_gif_path, class: "btn btn-success btn-lg right" %>
        </div>
-
      </div>
      <!-- /.row -->
+
+     <div class="row">
+      <%- if @cleaned_reddit_cat_gifs.present? %>
+        <h2>Reddit Cats</h2>
+        <%- @cleaned_reddit_cat_gifs.each do |cat_gif| %>
+          <div class="col-sm-4 mt40">
+            <div class="cat-gif img-circle img-center" style="background-image:url(<%= cat_gif["data"]["url"] %>)"></div>
+          </div>
+        <% end %>
+      <% end %>
+     </div>
   </div>
   <br>
 

@@ -5,6 +5,11 @@ class CatGifsController < ApplicationController
   # GET /cat_gifs.json
   def index
     @cat_gifs = CatGif.all
+
+    # User for API's later
+    # get_reddit_cats
+    # clean_reddit_cat_gifs
+
     @signup = Signup.new
   end
 
@@ -73,13 +78,48 @@ class CatGifsController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_cat_gif
-      @cat_gif = CatGif.find(params[:id])
-    end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def cat_gif_params
-      params.require(:cat_gif).permit(:title, :url, :score)
+  # Use callbacks to share common setup or constraints between actions.
+  def set_cat_gif
+    @cat_gif = CatGif.find(params[:id])
+  end
+
+  # Never trust parameters from the scary internet, only allow the white list through.
+  def cat_gif_params
+    params.require(:cat_gif).permit(:title, :url, :score)
+  end
+
+  def get_reddit_cats
+    #Make the HTTP request:
+    reddit_data = RestClient.get("https://www.reddit.com/r/CatGifs/.json")
+
+    #Parse the stuff we care about: response.body
+    results = JSON.parse(reddit_data.body)
+
+    #Save the data to an array of cats. 
+    @reddit_cat_gifs = results["data"]["children"]
+  end
+
+  # This is well, un-good code
+  def clean_reddit_cat_gifs
+    @cleaned_reddit_cat_gifs =  []
+
+    @reddit_cat_gifs.each do |cat_gif|
+      if cat_gif["data"]["url"].include? ".gif"
+        if cat_gif["data"]["url"].include? ".gifv"
+          bad_url = cat_gif["data"]["url"]
+          good_url = bad_url.gsub(/.gifv/, '.gif')
+          cat_gif["data"]["url"] = good_url
+          @cleaned_reddit_cat_gifs << cat_gif
+        else
+          @cleaned_reddit_cat_gifs << cat_gif
+        end
+      end
+
+      @cleaned_reddit_cat_gifs << cat_gif if cat_gif["data"]["url"].include? ".jpg"
+      @cleaned_reddit_cat_gifs << cat_gif if cat_gif["data"]["url"].include? ".jpeg"
+      @cleaned_reddit_cat_gifs << cat_gif if cat_gif["data"]["url"].include? ".jif"
+      @cleaned_reddit_cat_gifs << cat_gif if cat_gif["data"]["url"].include? ".png"
     end
+  end
 end
